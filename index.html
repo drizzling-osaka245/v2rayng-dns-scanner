@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>V2rayNG DNS Scanner v0.0.12</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style id="dynamic-ui-rules">
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+        
+        *, *::before, *::after, button, input, textarea, select, table, td, th, pre, span {
+            font-family: 'Vazirmatn', sans-serif !important;
+        }
+
+        :root {
+            --accent-primary: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --border-radius: 14px;
+            --glass-opacity: 0.80;
+            --blur-strength: 10px;
+            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            --transition-speed: 0.22s;
+        }
+
+        .custom-accent-bg {
+            background-color: var(--accent-primary) !important;
+            color: #ffffff !important;
+        }
+        .custom-accent-bg:hover {
+            background-color: var(--accent-hover) !important;
+        }
+        .custom-accent-text {
+            color: var(--accent-primary) !important;
+        }
+        .custom-accent-border {
+            border-color: var(--accent-primary) !important;
+        }
+        .custom-radius {
+            border-radius: var(--border-radius) !important;
+        }
+
+        .backdrop-blur {
+            backdrop-filter: blur(var(--blur-strength)) !important;
+            -webkit-backdrop-filter: blur(var(--blur-strength)) !important;
+        }
+
+        .modal-backdrop-active {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        .modal-box-active {
+            transform: scale(1) !important;
+        }
+
+        * {
+            transition: background-color var(--transition-speed) ease, 
+                        border-color var(--transition-speed) ease, 
+                        transform var(--transition-speed) ease,
+                        box-shadow var(--transition-speed) ease;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-[#05080e] dark:text-slate-200 p-2 md:p-6 min-h-screen flex flex-col justify-between">
+
+    <div class="max-w-7xl w-full mx-auto flex-grow">
+        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-200 dark:border-slate-800/80">
+            <div class="flex items-center gap-1.5">
+                <span class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[10px] md:text-xs px-2.5 py-1 rounded-full font-black">v0.0.12 Professional</span>
+                <span class="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-bold hidden sm:inline" data-i18n="engine_active">سیستم آنالیز پایداری و افت پکت فعال است</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button id="themeToggleBtn" class="p-2 custom-radius bg-slate-200/80 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 hover:scale-105 transition text-xs" title="تغییر تم">
+                    <span id="themeIcon">🌙</span>
+                </button>
+                <button id="openImportBtn" class="flex items-center gap-1.5 px-3 py-2 custom-radius bg-slate-200/80 dark:bg-slate-900/80 hover:bg-slate-300 dark:hover:bg-slate-800 text-[11px] font-bold transition">
+                    📥 <span data-i18n="import_bulk_title">بارگذاری دستی سرورها</span>
+                </button>
+                <button id="openSettingsBtn" class="flex items-center gap-1.5 px-3 py-2 custom-radius bg-slate-200/80 dark:bg-slate-900/80 hover:bg-slate-300 dark:hover:bg-slate-800 text-[11px] font-bold transition">
+                    ⚙️ <span data-i18n="settings_title">پیکربندی محیط کاربری</span>
+                </button>
+            </div>
+        </div>
+
+        <header class="text-center mb-6">
+            <h1 class="text-2xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400 mb-1 leading-tight select-none" data-i18n="main_title">
+                V2rayNG DNS Scanner
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 text-[10px] md:text-xs max-w-2xl mx-auto leading-relaxed" data-i18n="main_desc">
+                بسط خودکار پروتکل‌های پنج‌گانه منطبق با معیارهای تاخیر، پایداری اتصالات و رفع پکت‌لاس‌های ساختاری شبکه.
+            </p>
+        </header>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="bg-white/60 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 p-3 custom-radius flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 font-bold" data-i18n="stat_total">تعداد آدرس‌های صف</span>
+                <span id="statTotalNodes" class="text-lg md:text-xl font-mono font-black text-purple-500">0</span>
+            </div>
+            <div class="bg-white/60 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 p-3 custom-radius flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 font-bold" data-i18n="stat_active">سرویس‌های پاسخگو</span>
+                <span id="statActiveNodes" class="text-lg md:text-xl font-mono font-black text-emerald-500">0</span>
+            </div>
+            <div class="bg-white/60 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 p-3 custom-radius flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 font-bold" data-i18n="stat_avg_latency">میانگین تاخیر اتصالات</span>
+                <span id="statAvgLatency" class="text-lg md:text-xl font-mono font-black text-cyan-500">0 ms</span>
+            </div>
+            <div class="bg-white/60 dark:bg-slate-900/60 backdrop-blur border border-slate-200 dark:border-slate-800/80 p-3 custom-radius flex flex-col justify-center">
+                <span class="text-[10px] text-slate-400 font-bold" data-i18n="stat_best_node">سریع‌ترین گره شبکه</span>
+                <span id="statBestNode" class="text-xs md:text-sm font-bold text-pink-500 truncate">-</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            
+            <div id="sidebarCard" class="bg-white/70 dark:bg-slate-900/70 backdrop-blur border border-slate-200 dark:border-slate-800 p-4 custom-radius shadow-md flex flex-col gap-4">
+                <h2 class="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                    <span data-i18n="feed_config">⚡ مدیریت پایگاه‌های آدرس</span>
+                </h2>
+                
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[11px] text-slate-500 dark:text-slate-400 font-bold" data-i18n="remote_label">مخازن بین‌المللی و گره‌های خارجی</label>
+                        <span id="remoteCount" class="text-[9px] text-purple-500 font-mono font-bold">0 سرور</span>
+                    </div>
+                    <textarea id="remoteDnsInput" class="w-full h-32 md:h-40 bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 custom-radius p-2 text-[10px] font-mono text-purple-600 dark:text-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-500 transition leading-normal" placeholder="Name,IP/Host"></textarea>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[11px] text-slate-500 dark:text-slate-400 font-bold" data-i18n="domestic_label">سرورهای داخلی ایران (Domestic DNS)</label>
+                        <span id="domesticCount" class="text-[9px] text-cyan-500 font-mono font-bold">0 سرور</span>
+                    </div>
+                    <textarea id="domesticDnsInput" class="w-full h-24 md:h-28 bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800/80 custom-radius p-2 text-[10px] font-mono text-cyan-600 dark:text-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition leading-normal" placeholder="Name,IP"></textarea>
+                </div>
+
+                <div class="bg-slate-100/60 dark:bg-slate-950/60 p-3 custom-radius border border-slate-200 dark:border-slate-800/60">
+                    <div class="flex justify-between text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
+                        <span>🎯 تعداد کانال‌های پایه جهت اسکن:</span>
+                        <span id="activeScanLimitDisplay" class="font-mono text-purple-500 text-xs font-bold">50</span>
+                    </div>
+                    <input type="range" id="activeScanLimitSlider" min="10" max="400" value="50" class="w-full accent-purple-500">
+                </div>
+
+                <div class="bg-slate-100/60 dark:bg-slate-950/60 p-3 custom-radius border border-slate-200 dark:border-slate-800/60">
+                    <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-2">🔌 پروتکل‌های هدف برای تست:</label>
+                    <div class="grid grid-cols-3 gap-2 text-[10px] text-slate-700 dark:text-slate-300">
+                        <label class="flex items-center gap-1"><input type="checkbox" id="proto_udp" checked class="accent-purple-500"> UDP</label>
+                        <label class="flex items-center gap-1"><input type="checkbox" id="proto_tcp" checked class="accent-purple-500"> TCP</label>
+                        <label class="flex items-center gap-1"><input type="checkbox" id="proto_tls" checked class="accent-purple-500"> DoT</label>
+                        <label class="flex items-center gap-1"><input type="checkbox" id="proto_quic" checked class="accent-purple-500"> QUIC</label>
+                        <label class="flex items-center gap-1"><input type="checkbox" id="proto_https" checked class="accent-purple-500"> DoH</label>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 w-full">
+                    <button id="startScanBtn" class="w-full custom-accent-bg font-black py-3.5 custom-radius transition duration-300 shadow hover:opacity-95 text-xs md:text-sm" data-i18n="btn_start_scan">
+                        شروع اسکن هوشمند
+                    </button>
+                    <div class="flex gap-2">
+                        <button id="pauseScanBtn" class="hidden flex-grow px-4 py-3 bg-amber-500 hover:bg-amber-600 text-white font-black custom-radius transition duration-300 shadow text-xs" data-i18n="btn_pause_scan">
+                            ⏸️ توقف
+                        </button>
+                        <button id="clearResultsBtn" class="flex-grow px-4 py-3 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-black custom-radius transition duration-300 shadow text-xs hover:bg-slate-300 dark:hover:bg-slate-700">
+                            🧹 پاکسازی
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="monitorCard" class="lg:col-span-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur border border-slate-200 dark:border-slate-800 p-4 custom-radius shadow-md flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100" data-i18n="results_title">📊 پایش زنده و رتبه‌بندی کیفی پاسخ‌ها</h2>
+                            <span id="stateBadge" class="inline-flex items-center gap-1 text-[9px] px-2 py-0.5 font-bold rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                <span id="stateBadgeText">آماده‌باش</span>
+                            </span>
+                        </div>
+                        <p class="text-[10px] text-slate-400" data-i18n="results_desc">چینش بر اساس سرعت رفت و برگشت پکت‌ها منطبق با سینتکس رسمی v2rayNG.</p>
+                    </div>
+                    <span id="scanStatus" class="text-[10px] font-bold px-2 py-1 custom-radius bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/50 self-start" data-i18n="status_ready">آماده برای شروع</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                    <div class="sm:col-span-2">
+                        <input type="text" id="liveTableFilter" class="w-full bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 custom-radius px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500" placeholder="🔍 فیلتر آنی نتایج جدول (مثال: udp, cloudflare, tcp)...">
+                    </div>
+                    <div>
+                        <select id="tableSortSelect" class="w-full bg-slate-100/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 custom-radius px-2 py-2 text-xs focus:outline-none text-slate-600 dark:text-slate-300 font-bold">
+                            <option value="latency_asc" selected>⚡ اولویت: تاخیر کمتر</option>
+                            <option value="latency_desc">🐢 اولویت: تاخیر بیشتر</option>
+                            <option value="loss_asc">📉 اولویت: پکت‌لاس کمتر</option>
+                            <option value="name_asc">🔤 اولویت: نام سرور</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1.5 px-1">
+                    <div class="flex gap-2">
+                        <span id="speedDisplay" class="font-bold">سرعت: - گره/ثانیه</span>
+                        <span class="text-slate-500">|</span>
+                        <span id="etrDisplay" class="font-bold">زمان باقی‌مانده: - ثانیه</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <span id="progressCountDisplay" class="font-mono font-bold">0 / 0 گره</span>
+                        <span class="text-slate-500">|</span>
+                        <span id="progressPercentDisplay" class="font-mono font-bold text-purple-500">0%</span>
+                    </div>
+                </div>
+
+                <div class="w-full bg-slate-200 dark:bg-slate-950 rounded-full h-1.5 mb-3 overflow-hidden p-0.5 border border-slate-300 dark:border-slate-800">
+                    <div id="progressBar" class="bg-gradient-to-r from-purple-400 to-cyan-400 h-0.5 rounded-full w-0 transition-all duration-300"></div>
+                </div>
+
+                <div class="overflow-x-auto flex-grow max-h-[350px] overflow-y-auto border border-slate-200 dark:border-slate-800/80 custom-radius">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 sticky top-0 z-10">
+                            <tr>
+                                <th class="p-2 md:p-3 border-b border-slate-200 dark:border-slate-800 text-[10px] md:text-xs" data-i18n="th_name">سرور و نشانی اسکن‌شده (فرمت بومی v2rayNG)</th>
+                                <th class="p-2 md:p-3 border-b border-slate-200 dark:border-slate-800 text-center text-[10px] md:text-xs col-proto" data-i18n="th_proto">پروتکل / بخش</th>
+                                <th class="p-2 md:p-3 border-b border-slate-200 dark:border-slate-800 text-center text-[10px] md:text-xs" data-i18n="th_latency">تاخیر و پایداری</th>
+                                <th class="p-2 md:p-3 border-b border-slate-200 dark:border-slate-800 text-center text-[10px] md:text-xs" data-i18n="th_status">کپی / وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                            <tr class="text-slate-400 dark:text-slate-500">
+                                <td colspan="4" class="text-center p-6 text-xs md:text-sm" data-i18n="table_empty">برای شروع فرآیند پایش، دکمه آغاز اسکن را کلیک کنید.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="outputCard" class="mt-4 md:mt-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur border border-slate-200 dark:border-slate-800 p-4 md:p-6 custom-radius shadow-md">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-3">
+                <div>
+                    <h3 class="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100" data-i18n="out_title">📦 کدهای مسیریابی بهینه‌سازی شده</h3>
+                    <p class="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-0.5" data-i18n="out_desc">خروجی یکپارچه جهت استفاده در هسته‌های توزیع ترافیک و مسیریاب هوشمند.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button id="downloadLogBtn" class="hidden bg-slate-200 dark:bg-slate-800 hover:bg-purple-600 hover:text-white px-4 py-2.5 text-xs font-bold custom-radius transition flex items-center gap-1 shadow">
+                        ⬇️ <span data-i18n="btn_download_report">دانلود گزارش متنی (TXT)</span>
+                    </button>
+                    <button id="copyConfigBtn" class="custom-accent-bg px-5 py-2.5 text-xs font-black custom-radius transition duration-200 shadow hover:scale-105" data-i18n="btn_copy">
+                        کپی کد تنظیمات
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex border-b border-slate-200 dark:border-slate-800 mb-3 overflow-x-auto gap-2">
+                <button class="config-tab-btn active px-4 py-2 text-xs font-bold border-b-2 border-purple-500 text-purple-500 transition focus:outline-none" data-tab="xray">Xray / v2rayNG</button>
+                <button class="config-tab-btn px-4 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-300 transition focus:outline-none" data-tab="singbox">Sing-Box</button>
+                <button class="config-tab-btn px-4 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-300 transition focus:outline-none" data-tab="clash">Clash Meta (Mihomo)</button>
+                <button class="config-tab-btn px-4 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-300 transition focus:outline-none" data-tab="dnsmasq">Dnsmasq / Hosts</button>
+            </div>
+
+            <pre class="bg-slate-100/80 dark:bg-slate-950/80 p-3 custom-radius overflow-x-auto text-[10px] md:text-xs text-purple-700 dark:text-purple-400 max-h-64 border border-slate-200 dark:border-slate-800/60 font-mono leading-relaxed" id="jsonOutput">// پس از اتمام اسکن، ساختار کانفیگ انتخابی در این بخش درج می‌شود...</pre>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="settingsBox" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 custom-radius p-4 md:p-6 max-w-lg w-full shadow-2xl transform scale-90 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100" data-i18n="settings_modal_title">⚙️ شخصی‌سازی پیشرفته و تنظیمات ترافیک</h3>
+                <button id="closeSettingsBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold transition text-base">✕</button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1" data-i18n="set_language">زبان رابط کاربری</label>
+                    <select id="langSelect" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none">
+                        <option value="fa">فارسی (FA)</option>
+                        <option value="en">English (EN)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">پوسته نمایشی پیشرفته (UI Theme)</label>
+                    <select id="themeStyleSelect" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none">
+                        <option value="dark">تاریک معمولی (Dark Blue)</option>
+                        <option value="oled">مشکی اولد گوشی (OLED Black)</option>
+                        <option value="light">سفید شفاف (Light Clean)</option>
+                        <option value="cyber">تم سایبرپانک زرد (Cyberpunk)</option>
+                        <option value="neon" selected>بنفش رویایی (Neon Violet)</option>
+                        <option value="forest">جنگل تاریک (Dark Forest)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">رنگ دکمه‌ها (Accent Color)</label>
+                    <div class="grid grid-cols-6 gap-2 mt-1">
+                        <button type="button" class="color-swatch-btn h-7 rounded-full border border-slate-300 dark:border-slate-700 bg-[#8b5cf6]" data-color="#8b5cf6" data-hover="#7c3aed"></button>
+                        <button type="button" class="color-swatch-btn h-7 rounded-full border border-slate-300 dark:border-slate-700 bg-[#10b981]" data-color="#10b981" data-hover="#059669"></button>
+                        <button type="button" class="color-swatch-btn h-7 rounded-full border border-slate-300 dark:border-slate-700 bg-[#3b82f6]" data-color="#3b82f6" data-hover="#2563eb"></button>
+                        <button type="button" class="color-swatch-btn h-7 rounded-full border border-slate-300 dark:border-slate-700 bg-[#f43f5e]" data-color="#f43f5e" data-hover="#e11d48"></button>
+                        <button type="button" class="color-swatch-btn h-7 rounded-full border border-slate-300 dark:border-slate-700 bg-[#f59e0b]" data-color="#f59e0b" data-hover="#d97706"></button>
+                        <button type="button" class="color-swatch-btn h-7 rounded-full border border-slate-300 dark:border-slate-700 bg-[#ec4899]" data-color="#ec4899" data-hover="#db2777"></button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        <span>زمان انتظار پکت‌ها (Timeout Threshold)</span>
+                        <span id="timeoutValueDisplay" class="font-mono text-[10px]">1800ms</span>
+                    </label>
+                    <input type="range" id="timeoutRange" min="500" max="5000" step="100" value="1800" class="w-full accent-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">متد درخواستی پروتکل DoH:</label>
+                    <select id="dohMethodSelect" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none font-bold">
+                        <option value="auto" selected>ترکیبی خودکار (POST with GET Fallback)</option>
+                        <option value="post">فقط درخواستی POST استاندارد</option>
+                        <option value="get">فقط GET آدرس رمزگذاری‌شده (DPI-Bypass)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        <span>میزان گردی کادرها (Border Radius)</span>
+                        <span id="radiusValueDisplay" class="font-mono text-[10px]">14px</span>
+                    </label>
+                    <input type="range" id="radiusRange" min="0" max="24" value="14" class="w-full accent-purple-500">
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        <span>شفافیت شیشه پشت‌زمینه (Glass Opacity)</span>
+                        <span id="opacityValueDisplay" class="font-mono text-[10px]">80%</span>
+                    </label>
+                    <input type="range" id="opacityRange" min="10" max="100" value="80" class="w-full accent-purple-500">
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        <span>شدت ماتی پس‌زمینه (Backdrop Blur)</span>
+                        <span id="blurValueDisplay" class="font-mono text-[10px]">10px</span>
+                    </label>
+                    <input type="range" id="blurRange" min="0" max="24" value="10" class="w-full accent-purple-500">
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        <span>سایز قلم کادر خروجی کانفیگ</span>
+                        <span id="fontSizeValueDisplay" class="font-mono text-[10px]">12px</span>
+                    </label>
+                    <input type="range" id="fontSizeRange" min="8" max="18" value="12" class="w-full accent-purple-500">
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        <span>سایز قلم جدول نتایج</span>
+                        <span id="tableFontSizeValueDisplay" class="font-mono text-[10px]">11px</span>
+                    </label>
+                    <input type="range" id="tableFontSizeRange" min="9" max="16" value="11" class="w-full accent-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">میزان درخشش و سایه کادرها (Box Shadows)</label>
+                    <select id="shadowSelect" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none">
+                        <option value="none">بدون سایه (Flat UI)</option>
+                        <option value="soft" selected>سافت استاندارد (Soft Shadow)</option>
+                        <option value="glow">درخشش رنگی نئونی (Colored Glow)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">سرعت انیمیشن‌های سیستم</label>
+                    <select id="speedSelect" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none">
+                        <option value="0s">فوری و بدون انیمیشن (Instant)</option>
+                        <option value="0.15s">پویا و سریع (0.15s)</option>
+                        <option value="0.22s" selected>نرمال (0.22s)</option>
+                        <option value="0.4s">آرام (0.40s)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        <span data-i18n="set_concurrency">حداکثر اسکن همزمان (Concurrency)</span>
+                        <span id="concurrencyValueDisplay" class="font-mono text-[10px]">24</span>
+                    </label>
+                    <input type="range" id="concurrencySlider" min="1" max="100" value="24" class="w-full accent-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">دامنه پیش‌فرض آزمون لایه رزولوشن (Query Preset)</label>
+                    <select id="targetPresetSelect" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none mb-1.5 font-bold">
+                        <option value="wikipedia.org" selected>wikipedia.org (پیشنهادی - آزاد دایمی)</option>
+                        <option value="google.com">google.com (سرویس‌های گوگل)</option>
+                        <option value="github.com">github.com (پرکاربرد توسعه‌دهندگان)</option>
+                        <option value="cloudflare.com">cloudflare.com (ابری)</option>
+                        <option value="digikala.com">digikala.com (سنجش دامنه‌های داخل کشور)</option>
+                        <option value="aparat.com">aparat.com (سرویس ویدیو ملی)</option>
+                        <option value="speedtest.net">speedtest.net (سرعت‌سنج جهانی)</option>
+                    </select>
+                    <input type="text" id="targetDomainInput" value="wikipedia.org" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none font-mono" placeholder="یا دامنه سفارشی...">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5">ستون‌های نمایشی جدول:</label>
+                    <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-600 dark:text-slate-300">
+                        <label class="flex items-center gap-1"><input type="checkbox" id="col_proto" checked class="accent-purple-500"> پروتکل / بخش</label>
+                        <label class="flex items-center gap-1"><input type="checkbox" id="col_jitter" checked class="accent-purple-500"> نوسان تاخیر (Jitter)</label>
+                        <label class="flex items-center gap-1"><input type="checkbox" id="col_resolved" checked class="accent-purple-500"> آی‌پی حل‌شده</label>
+                        <label class="flex items-center gap-1"><input type="checkbox" id="col_loss" checked class="accent-purple-500"> پکت‌لاس</label>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-slate-100/50 dark:bg-slate-950/50 p-2 custom-radius border border-slate-200 dark:border-slate-800/60">
+                    <label class="text-[11px] font-bold text-slate-600 dark:text-slate-300" for="audioAlertToggle">🔔 پخش صدای نوتیفیکیشن پس از پایان اسکن</label>
+                    <input type="checkbox" id="audioAlertToggle" checked class="accent-purple-500 w-4 h-4">
+                </div>
+            </div>
+
+            <button id="saveSettingsBtn" class="w-full custom-accent-bg font-bold py-2.5 mt-5 custom-radius text-[11px] md:text-xs transition" data-i18n="btn_save">
+                اعمال سراسری و ذخیره دائمی
+            </button>
+        </div>
+    </div>
+
+    <div id="importModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-3 md:p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div id="importBox" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 custom-radius p-4 md:p-6 max-w-lg w-full shadow-2xl transform scale-90 transition-all duration-300">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-sm md:text-base font-bold text-slate-800 dark:text-slate-100" data-i18n="import_modal_title">📥 افزودن انبوه سرور دی‌ان‌اس</h3>
+                <button id="closeImportBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold transition text-base">✕</button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400" data-i18n="import_label_desc">لیست را به شکل (Name,IP) یا فقط IPهای ساده وارد کنید. هر سرور در یک خط جداگانه قرار گیرد:</label>
+                <textarea id="bulkImportTextarea" class="w-full h-44 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-purple-500 leading-normal" placeholder="CustomServerName,8.8.8.8&#10;1.1.1.1"></textarea>
+                
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1" data-i18n="import_target_list">افزودن به کدام لیست؟</label>
+                    <select id="importTargetSelect" class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 custom-radius p-2 focus:outline-none">
+                        <option value="remote">لیست خارجی (Remote DNS)</option>
+                        <option value="domestic">لیست داخلی ایران (Domestic DNS)</option>
+                    </select>
+                </div>
+            </div>
+            <button id="applyImportBtn" class="w-full custom-accent-bg font-bold py-2.5 mt-5 custom-radius text-[11px] md:text-xs transition" data-i18n="btn_apply_import">
+                تصفیه و افزودن به پایگاه داده
+            </button>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <footer class="text-center py-4 mt-6 border-t border-slate-200 dark:border-slate-800/80">
+        <p class="text-xs text-slate-400 dark:text-slate-500 font-bold select-none tracking-wider">
+            Developed by THE SAZ 💜 (Optimized for 2026 Core Protocols)
+        </p>
+    </footer>
+
+    <script>
+        const translations = {
+            fa: {
+                engine_active: "سیستم آنالیز پایداری و افت پکت فعال است",
+                settings_title: "پیکربندی محیط کاربری",
+                main_title: "V2rayNG DNS Scanner",
+                main_desc: "بسط خودکار پروتکل‌های پنج‌گانه منطبق با معیارهای تاخیر، پایداری اتصالات و رفع پکت‌لاس‌های ساختاری شبکه.",
+                feed_config: "⚡ مدیریت پایگاه‌های آدرس",
+                remote_label: "مخازن بین‌المللی و گره‌های خارجی",
+                domestic_label: "سرورهای داخلی ایران (Domestic DNS)",
+                btn_start_scan: "شروع اسکن هوشمند",
+                btn_pause_scan: "⏸️ توقف",
+                btn_resume_scan: "▶️ ادامه",
+                results_title: "📊 پایش زنده و رتبه‌بندی کیفی پاسخ‌ها",
+                results_desc: "نتایج بر اساس کمترین میزان تاخیر رفت و برگشت پکت مرتب می‌شوند.",
+                status_ready: "آماده برای شروع",
+                status_scanning: "در حال پردازش ترافیک کانال‌ها...",
+                status_paused: "عملیات متوقف شده است",
+                status_completed: "آنالیز اتصالات به پایان رسید!",
+                th_name: "سرور و نشانی اسکن‌شده (فرمت بومی v2rayNG)",
+                th_proto: "پروتکل / بخش",
+                th_latency: "تاخیر و پایداری",
+                th_status: "وضعیت",
+                table_empty: "برای شروع فرآیند پایش، دکمه آغاز اسکن را کلیک کنید.",
+                out_title: "📦 کدهای مسیریابی بهینه‌سازی شده",
+                out_desc: "خروجی یکپارچه جهت استفاده در هسته‌های توزیع ترافیک و مسیریاب هوشمند.",
+                btn_copy: "کپی کد تنظیمات",
+                btn_copied: "کپی شد! ✔️",
+                settings_modal_title: "⚙️ پیکربندی پیشرفته و شخصی‌سازی ابزار",
+                set_language: "زبان رابط کاربری",
+                set_concurrency: "حداکثر اسکن همزمان (Concurrency)",
+                btn_save: "اعمال سراسری و ذخیره دائمی",
+                status_untested: "بررسی نشده",
+                status_failed: "پکت‌لاس / مسدود",
+                status_success: "پاسخ‌گو",
+                btn_download_report: "دانلود گزارش متنی (TXT)",
+                import_bulk_title: "بارگذاری دستی سرورها",
+                import_modal_title: "📥 افزودن انبوه سرور دی‌ان‌اس",
+                import_label_desc: "لیست را به شکل (Name,IP) یا فقط IPهای ساده وارد کنید. هر سرور در یک خط جداگانه قرار گیرد:",
+                import_target_list: "افزودن به کدام لیست؟",
+                btn_apply_import: "تصفیه و افزودن به پایگاه داده",
+                stat_total: "تعداد آدرس‌های صف",
+                stat_active: "سرویس‌های پاسخگو",
+                stat_avg_latency: "میانگین تاخیر اتصالات",
+                stat_best_node: "سریع‌ترین گره شبکه"
+            },
+            en: {
+                engine_active: "Stability & Packet Loss Analyzer Active",
+                settings_title: "UI & Workspace Settings",
+                main_title: "V2rayNG DNS Scanner",
+                main_desc: "Evaluates 5-protocol endpoints based on low latency, connection stability, and packet loss parameters.",
+                feed_config: "⚡ DNS Repositories",
+                remote_label: "International Repositories & Nodes",
+                domestic_label: "Domestic Iran Operators DNS",
+                btn_start_scan: "Start Benchmark",
+                btn_pause_scan: "⏸️ Pause",
+                btn_resume_scan: "▶️ Resume",
+                results_title: "📊 Live Diagnostics & Performance Benchmarks",
+                results_desc: "Sorted dynamically by lowest round-trip response time.",
+                status_ready: "Idle",
+                status_scanning: "Evaluating active channels...",
+                status_paused: "Analysis paused",
+                status_completed: "Benchmark completed successfully!",
+                th_name: "Host Address & Protocol (v2rayNG format)",
+                th_proto: "Proto / Role",
+                th_latency: "Latency & Stability",
+                th_status: "Verdict",
+                table_empty: "Press Start Benchmark to begin diagnostics.",
+                out_title: "📦 Optimized Routing Configuration",
+                out_desc: "Copy and paste this routing template directly to split your DNS traffic.",
+                btn_copy: "Copy Routing Configuration",
+                btn_copied: "Copied! ✔️",
+                settings_modal_title: "⚙️ Advanced Settings & Customization",
+                set_language: "Workspace Language",
+                set_concurrency: "Max Concurrency Limit",
+                btn_save: "Apply and Save Configuration",
+                status_untested: "Untested",
+                status_failed: "Timed out / Dead",
+                status_success: "Active",
+                btn_download_report: "Download Report (TXT)",
+                import_bulk_title: "Bulk DNS Manual Import",
+                import_modal_title: "📥 Bulk Import DNS Nodes",
+                import_label_desc: "Format: (Name,IP) or raw IP. One entry per line:",
+                import_target_list: "Target Database List:",
+                btn_apply_import: "Apply & Insert Entries",
+                stat_total: "Total Config Queue",
+                stat_active: "Active Verified Handshakes",
+                stat_avg_latency: "Average Latency RTT",
+                stat_best_node: "Best Node Selected"
+            }
+        };
+
+        const massiveRemoteServers = [
+            { name: "Cloudflare Primary", url: "1.1.1.1" },
+            { name: "Cloudflare Secondary", url: "1.0.0.1" },
+            { name: "Google Engine Main", url: "8.8.8.8" },
+            { name: "Google Engine Backup", url: "8.8.4.4" },
+            { name: "Quad9 Secure Node", url: "9.9.9.9" },
+            { name: "Quad9 Unfiltered Node", url: "9.9.9.10" },
+            { name: "Quad9 Alternate IP", url: "149.112.112.112" },
+            { name: "AdGuard Default Server", url: "94.140.14.14" },
+            { name: "AdGuard Family Server", url: "94.140.14.15" },
+            { name: "ControlD Unfiltered", url: "76.76.2.0" },
+            { name: "ControlD Family Protect", url: "76.76.2.3" },
+            { name: "Mullvad Privacy Node", url: "194.242.2.2" },
+            { name: "DNS.SB High-Perf", url: "185.222.222.222" },
+            { name: "NextDNS Secure Infrastructure", url: "45.90.28.0" },
+            { name: "Cisco OpenDNS Primary", url: "208.67.222.222" },
+            { name: "Cisco OpenDNS Backup", url: "208.67.220.220" },
+            { name: "Gcore Fast Routing", url: "95.85.95.85" },
+            { name: "Level3 Carrier Node 4", url: "4.2.2.4" },
+            { name: "Level3 Carrier Node 1", url: "4.2.2.1" },
+            { name: "Level3 Carrier Node 2", url: "4.2.2.2" },
+            { name: "Comodo Secure Engine", url: "8.26.56.26" },
+            { name: "Yandex Public DNS", url: "77.88.8.8" },
+            { name: "CleanBrowsing Core Filter", url: "185.228.168.9" },
+            { name: "Quad101 Public Taiwan", url: "101.101.101.101" },
+            { name: "Neustar UltraDNS Main", url: "156.154.70.1" },
+            { name: "Neustar UltraDNS Alt", url: "156.154.71.1" },
+            { name: "AliDNS Main (Alibaba China)", url: "223.5.5.5" },
+            { name: "AliDNS Alternate (Alibaba)", url: "223.6.6.6" },
+            { name: "Baidu Public DNS Core", url: "180.76.76.76" },
+            { name: "Tencent Fast DNS (DNSPod)", url: "119.29.29.119" },
+            { name: "Tencent DNS Secondary", url: "119.28.28.119" },
+            { name: "114DNS High Reliability", url: "114.114.114.114" },
+            { name: "114DNS Safe Browsing", url: "114.114.114.115" },
+            { name: "360 Secure Browser DNS", url: "101.226.4.6" },
+            { name: "360 Secure Infrastructure", url: "180.153.225.136" },
+            { name: "CNNIC National Gateway", url: "1.2.4.8" }
+        ];
+
+        const defaultDomesticList = [
+            { name: "شکن ضدتحریم اصلی", url: "178.22.122.100" },
+            { name: "شکن ضدتحریم پشتیبان", url: "185.51.200.2" },
+            { name: "الکترو دی‌ان‌اس اصلی", url: "78.157.108.22" },
+            { name: "الکترو دی‌ان‌اس پشتیبان", url: "78.157.108.23" },
+            { name: "رادار بازی مستقیم", url: "10.201.201.201" },
+            { name: "رادار بازی کمکی", url: "10.201.201.202" },
+            { name: "سامانه ملی 403 اصلی", url: "10.202.10.10" },
+            { name: "سامانه ملی 403 پشتیبان", url: "10.202.10.11" },
+            { name: "بگذر تحریم‌شکن اصلی", url: "185.55.226.26" },
+            { name: "بگذر تحریم‌شکن کمکی", url: "185.55.225.25" },
+            { name: "دی‌ان‌اس عمومی زیتون", url: "185.231.182.122" },
+            { name: "دی‌ان‌اس شاتل محلی", url: "194.225.150.150" },
+            { name: "دی‌ان‌اس شاتل پشتیبان", url: "194.225.150.254" },
+            { name: "دی‌ان‌اس همراه اول اصلی", url: "10.199.1.15" },
+            { name: "دی‌ان‌اس همراه اول پشتیبان", url: "10.199.1.16" },
+            { name: "دی‌ان‌اس ایرانسل عمومی", url: "10.200.1.10" },
+            { name: "دی‌ان‌اس ایرانسل پشتیبان", url: "10.200.1.11" },
+            { name: "دی‌ان‌اس مخابرات ایران اصلی", url: "217.218.155.155" },
+            { name: "دی‌ان‌اس مخابرات ایران پشتیبان", url: "217.218.127.127" },
+            { name: "دی‌ان‌اس رایتل اصلی", url: "10.210.1.10" },
+            { name: "دی‌ان‌اس رایتل پشتیبان", url: "10.210.1.11" },
+            { name: "دی‌ان‌اس آسیاتک اصلی", url: "194.225.244.244" },
+            { name: "دی‌ان‌اس آسیاتک پشتیبان", url: "194.225.244.10" },
+            { name: "دی‌ان‌اس پارس آنلاین اصلی", url: "91.98.98.98" },
+            { name: "دی‌ان‌اس پارس آنلاین پشتیبان", url: "91.99.99.99" },
+            { name: "دی‌ان‌اس مبین‌نت اصلی", url: "194.225.161.161" },
+            { name: "دی‌ان‌اس مبین‌نت پشتیبان", url: "194.225.161.162" },
+            { name: "دی‌ان‌اس پیشگامان توسعه", url: "5.200.200.200" },
+            { name: "دی‌ان‌اس هاست شاتل", url: "85.15.15.15" },
+            { name: "دی‌ان‌اس شبکه افرانت", url: "193.189.123.123" },
+            { name: "دی‌ان‌اس فناپ تلکام", url: "185.143.204.204" },
+            { name: "دی‌ان‌اس های‌وب کشور", url: "82.115.16.16" },
+            { name: "دی‌ان‌اس رسانه اصفهان", url: "46.100.100.100" },
+            { name: "دی‌ان‌اس داتک تلکام", url: "193.189.244.244" },
+            { name: "دی‌ان‌اس رسپینا شبکه", url: "85.185.185.185" },
+            { name: "دی‌ان‌اس صبانت عمومی", url: "89.165.0.1" },
+            { name: "دی‌ان‌اس لایزر اصفهان", url: "195.146.10.10" },
+            { name: "دی‌ان‌اس حل‌پورتال ملی", url: "185.8.172.10" }
+        ];
+
+        let appLanguage = localStorage.getItem('appLang') || 'fa';
+        let uiThemeMode = localStorage.getItem('uiThemeMode') || 'neon';
+        let scanConcurrency = parseInt(localStorage.getItem('concurrency')) || 24;
+        let testTargetDomain = localStorage.getItem('targetDomain') || 'wikipedia.org';
+        
+        let customAccentColor = localStorage.getItem('customAccentColor') || '#8b5cf6';
+        let customAccentHover = localStorage.getItem('customAccentHover') || '#7c3aed';
+        let customBorderRadius = localStorage.getItem('customBorderRadius') || '14';
+        let customGlassOpacity = localStorage.getItem('customGlassOpacity') || '80';
+        let uiShadowStyle = localStorage.getItem('uiShadowStyle') || 'soft';
+        let uiTransitionSpeed = localStorage.getItem('uiTransitionSpeed') || '0.22s';
+
+        // Custom adjustments loaded safely
+        let packetTimeout = parseInt(localStorage.getItem('packetTimeout')) || 1800;
+        let dohMethod = localStorage.getItem('dohMethod') || 'auto';
+        let blurStrength = parseInt(localStorage.getItem('blurStrength')) || 10;
+        let outputFontSize = parseInt(localStorage.getItem('outputFontSize')) || 12;
+        let tableFontSize = parseInt(localStorage.getItem('tableFontSize')) || 11;
+
+        let isAudioAlertEnabled = localStorage.getItem('isAudioAlertEnabled') !== 'false';
+        let showProto = localStorage.getItem('showProto') !== 'false';
+        let showJitter = localStorage.getItem('showJitter') !== 'false';
+        let showResolved = localStorage.getItem('showResolved') !== 'false';
+        let showLoss = localStorage.getItem('showLoss') !== 'false';
+
+        let globalScanResults = [];
+        let isCurrentlyScanning = false;
+        let isScanPaused = false; 
+        let isScanCancelled = false;
+        let scanLogs = [];
+        let exportFormatTab = 'xray';
+        let scanStartTime = 0;
+
+        function initializeApp() {
+            applyLanguage(appLanguage);
+            applyThemePreset(uiThemeMode);
+            applyCustomStyles();
+            updateColumnVisibilityStyles();
+            
+            const cachedRemote = localStorage.getItem('customRemoteFeed_v0_0_12');
+            const cachedDomestic = localStorage.getItem('customDomesticFeed_v0_0_12');
+
+            document.getElementById('remoteDnsInput').value = cachedRemote || massiveRemoteServers.map(s => `${s.name},${s.url}`).join('\n');
+            document.getElementById('domesticDnsInput').value = cachedDomestic || defaultDomesticList.map(s => `${s.name},${s.url}`).join('\n');
+            
+            updateInputCounters();
+
+            document.getElementById('langSelect').value = appLanguage;
+            document.getElementById('themeStyleSelect').value = uiThemeMode;
+            document.getElementById('concurrencySlider').value = scanConcurrency;
+            document.getElementById('concurrencyValueDisplay').innerText = scanConcurrency;
+            document.getElementById('targetDomainInput').value = testTargetDomain;
+            document.getElementById('radiusRange').value = customBorderRadius;
+            document.getElementById('opacityRange').value = customGlassOpacity;
+            document.getElementById('shadowSelect').value = uiShadowStyle;
+            document.getElementById('speedSelect').value = uiTransitionSpeed;
+
+            // Set customized options UI
+            document.getElementById('timeoutRange').value = packetTimeout;
+            document.getElementById('timeoutValueDisplay').innerText = `${packetTimeout}ms`;
+            document.getElementById('dohMethodSelect').value = dohMethod;
+            document.getElementById('blurRange').value = blurStrength;
+            document.getElementById('blurValueDisplay').innerText = `${blurStrength}px`;
+            document.getElementById('fontSizeRange').value = outputFontSize;
+            document.getElementById('fontSizeValueDisplay').innerText = `${outputFontSize}px`;
+
+            document.getElementById('tableFontSizeRange').value = tableFontSize;
+            document.getElementById('tableFontSizeValueDisplay').innerText = `${tableFontSize}px`;
+            document.getElementById('audioAlertToggle').checked = isAudioAlertEnabled;
+
+            document.getElementById('col_proto').checked = showProto;
+            document.getElementById('col_jitter').checked = showJitter;
+            document.getElementById('col_resolved').checked = showResolved;
+            document.getElementById('col_loss').checked = showLoss;
+
+            document.getElementById('targetPresetSelect').addEventListener('change', (e) => {
+                document.getElementById('targetDomainInput').value = e.target.value;
+            });
+
+            document.getElementById('liveTableFilter').addEventListener('input', () => {
+                renderTable(globalScanResults);
+            });
+
+            document.getElementById('tableSortSelect').addEventListener('change', () => {
+                renderTable(globalScanResults);
+            });
+
+            document.getElementById('concurrencySlider').addEventListener('input', (e) => {
+                document.getElementById('concurrencyValueDisplay').innerText = e.target.value;
+            });
+
+            document.getElementById('tableFontSizeRange').addEventListener('input', (e) => {
+                document.getElementById('tableFontSizeValueDisplay').innerText = `${e.target.value}px`;
+            });
+
+            // Column switch listener bindings
+            ['col_proto', 'col_jitter', 'col_resolved', 'col_loss'].forEach(id => {
+                document.getElementById(id).addEventListener('change', () => {
+                    updateColumnVisibilityStyles();
+                    renderTable(globalScanResults);
+                });
+            });
+
+            document.querySelectorAll('.config-tab-btn').forEach(tabBtn => {
+                tabBtn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.config-tab-btn').forEach(b => {
+                        b.classList.remove('active', 'border-purple-500', 'text-purple-500');
+                        b.classList.add('border-transparent', 'text-slate-400');
+                    });
+                    tabBtn.classList.add('active', 'border-purple-500', 'text-purple-500');
+                    tabBtn.classList.remove('border-transparent', 'text-slate-400');
+                    exportFormatTab = tabBtn.getAttribute('data-tab');
+                    updateConfigOutputDisplay();
+                });
+            });
+
+            updateStateBadge('ready');
+        }
+
+        // Floating Toast Notification
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `p-3 text-xs font-bold custom-radius shadow-lg transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto flex items-center gap-2 `;
+            if (type === 'success') {
+                toast.className += 'bg-emerald-500 text-white';
+            } else if (type === 'error') {
+                toast.className += 'bg-red-500 text-white';
+            } else if (type === 'warning') {
+                toast.className += 'bg-amber-500 text-white';
+            } else {
+                toast.className += 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-950';
+            }
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateInputCounters() {
+            const remoteText = document.getElementById('remoteDnsInput').value;
+            const domesticText = document.getElementById('domesticDnsInput').value;
+
+            const rCount = remoteText.split('\n').filter(l => l.trim() !== '').length;
+            const dCount = domesticText.split('\n').filter(l => l.trim() !== '').length;
+
+            document.getElementById('remoteCount').innerText = `${rCount} سرور`;
+            document.getElementById('domesticCount').innerText = `${dCount} سرور`;
+
+            localStorage.setItem('customRemoteFeed_v0_0_12', remoteText);
+            localStorage.setItem('customDomesticFeed_v0_0_12', domesticText);
+        }
+
+        document.getElementById('remoteDnsInput').addEventListener('input', updateInputCounters);
+        document.getElementById('domesticDnsInput').addEventListener('input', updateInputCounters);
+
+        const activeScanSlider = document.getElementById('activeScanLimitSlider');
+        const activeScanDisplay = document.getElementById('activeScanLimitDisplay');
+        activeScanSlider.addEventListener('input', (e) => {
+            activeScanDisplay.innerText = e.target.value;
+        });
+
+        function applyLanguage(lang) {
+            const html = document.documentElement;
+            html.dir = lang === 'fa' ? 'rtl' : 'ltr';
+            html.lang = lang;
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) el.innerText = translations[lang][key];
+            });
+
+            localStorage.setItem('appLang', lang);
+            appLanguage = lang;
+        }
+
+        function applyThemePreset(mode) {
+            const html = document.documentElement;
+            html.classList.remove('dark', 'light');
+
+            if (mode === 'dark') {
+                html.classList.add('dark');
+                document.body.className = "bg-[#090e17] text-slate-100 p-2 md:p-6 min-h-screen flex flex-col justify-between";
+                document.getElementById('themeIcon').innerText = '☀️';
+            } else if (mode === 'oled') {
+                html.classList.add('dark');
+                document.body.className = "bg-[#000000] text-slate-100 p-2 md:p-6 min-h-screen flex flex-col justify-between";
+                document.getElementById('themeIcon').innerText = '☀️';
+            } else if (mode === 'light') {
+                html.classList.add('light');
+                document.body.className = "bg-slate-50 text-slate-800 p-2 md:p-6 min-h-screen flex flex-col justify-between";
+                document.getElementById('themeIcon').innerText = '🌙';
+            } else if (mode === 'cyber') {
+                html.classList.add('dark');
+                document.body.className = "bg-[#14061f] text-yellow-400 p-2 md:p-6 min-h-screen flex flex-col justify-between";
+                document.getElementById('themeIcon').innerText = '⚡';
+            } else if (mode === 'neon') {
+                html.classList.add('dark');
+                document.body.className = "bg-[#08041c] text-pink-300 p-2 md:p-6 min-h-screen flex flex-col justify-between";
+                document.getElementById('themeIcon').innerText = '🔮';
+            } else if (mode === 'forest') {
+                html.classList.add('dark');
+                document.body.className = "bg-[#020904] text-emerald-300 p-2 md:p-6 min-h-screen flex flex-col justify-between";
+                document.getElementById('themeIcon').innerText = '🌲';
+            }
+
+            localStorage.setItem('uiThemeMode', mode);
+            uiThemeMode = mode;
+        }
+
+        function applyCustomStyles() {
+            document.documentElement.style.setProperty('--accent-primary', customAccentColor);
+            document.documentElement.style.setProperty('--accent-hover', customAccentHover);
+            document.documentElement.style.setProperty('--border-radius', `${customBorderRadius}px`);
+            document.documentElement.style.setProperty('--glass-opacity', (customGlassOpacity / 100));
+            document.documentElement.style.setProperty('--transition-speed', uiTransitionSpeed);
+            document.documentElement.style.setProperty('--blur-strength', `${blurStrength}px`);
+
+            let shadowRule = "none";
+            if (uiShadowStyle === 'soft') {
+                shadowRule = "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+            } else if (uiShadowStyle === 'glow') {
+                shadowRule = `0 10px 25px -3px ${customAccentColor}33, 0 4px 6px -2px ${customAccentColor}11`;
+            }
+            document.documentElement.style.setProperty('--card-shadow', shadowRule);
+
+            const cards = ['sidebarCard', 'monitorCard', 'outputCard'];
+            cards.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.boxShadow = shadowRule;
+            });
+
+            document.getElementById('radiusValueDisplay').innerText = `${customBorderRadius}px`;
+            document.getElementById('opacityValueDisplay').innerText = `${customGlassOpacity}%`;
+            document.getElementById('jsonOutput').style.fontSize = `${outputFontSize}px`;
+            document.getElementById('resultsTableBody').style.fontSize = `${tableFontSize}px`;
+        }
+
+        function updateColumnVisibilityStyles() {
+            const showP = document.getElementById('col_proto').checked;
+            let css = '';
+            if (!showP) css += '.col-proto { display: none !important; }\n';
+
+            let styleEl = document.getElementById('dynamic-col-style');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'dynamic-col-style';
+                document.head.appendChild(styleEl);
+            }
+            styleEl.innerHTML = css;
+
+            // Preserve checkboxes globally
+            showProto = showP;
+            showJitter = document.getElementById('col_jitter').checked;
+            showResolved = document.getElementById('col_resolved').checked;
+            showLoss = document.getElementById('col_loss').checked;
+        }
+
+        // State Indicator Badge Updater
+        function updateStateBadge(state) {
+            const badge = document.getElementById('stateBadge');
+            const text = document.getElementById('stateBadgeText');
+            const dot = badge.querySelector('span');
+
+            badge.className = "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 font-bold rounded-full transition-all duration-300 ";
+            dot.className = "w-1.5 h-1.5 rounded-full ";
+
+            if (state === 'ready') {
+                badge.className += "bg-slate-200 dark:bg-slate-800 text-slate-500";
+                dot.className += "bg-slate-400";
+                text.innerText = appLanguage === 'fa' ? 'آماده‌باش' : 'Idle / Ready';
+            } else if (state === 'scanning') {
+                badge.className += "bg-emerald-500/10 text-emerald-500 animate-pulse";
+                dot.className += "bg-emerald-500";
+                text.innerText = appLanguage === 'fa' ? 'درحال پایش شبکه' : 'Scanning...';
+            } else if (state === 'paused') {
+                badge.className += "bg-amber-500/10 text-amber-500 animate-pulse";
+                dot.className += "bg-amber-500";
+                text.innerText = appLanguage === 'fa' ? 'متوقف شده' : 'Paused';
+            } else if (state === 'completed') {
+                badge.className += "bg-blue-500/10 text-blue-500";
+                dot.className += "bg-blue-500";
+                text.innerText = appLanguage === 'fa' ? 'بهینه‌سازی کامل' : 'Completed';
+            }
+        }
+
+        // Web Audio Synthesizer (Zero asset chime alert)
+        function playCompletionChime() {
+            if (!isAudioAlertEnabled) return;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const playTone = (freq, duration, delay) => {
+                    setTimeout(() => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        
+                        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                        
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + duration);
+                    }, delay);
+                };
+                playTone(587.33, 0.4, 0);   // D5
+                playTone(880.00, 0.5, 150); // A5
+            } catch (e) {
+                console.warn("Audio Context blocked by client/browser gesture rules.");
+            }
+        }
+
+        // Modals Management System
+        const settingsModal = document.getElementById('settingsModal');
+        const settingsBox = document.getElementById('settingsBox');
+        const importModal = document.getElementById('importModal');
+        const importBox = document.getElementById('importBox');
+
+        function openModal(modal, box) {
+            modal.classList.add('modal-backdrop-active');
+            box.classList.add('modal-box-active');
+        }
+
+        function closeModal(modal, box) {
+            modal.classList.remove('modal-backdrop-active');
+            box.classList.remove('modal-box-active');
+        }
+
+        document.getElementById('openSettingsBtn').addEventListener('click', () => openModal(settingsModal, settingsBox));
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => closeModal(settingsModal, settingsBox));
+        document.getElementById('openImportBtn').addEventListener('click', () => openModal(importModal, importBox));
+        document.getElementById('closeImportBtn').addEventListener('click', () => closeModal(importModal, importBox));
+        
+        settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) closeModal(settingsModal, settingsBox); });
+        importModal.addEventListener('click', (e) => { if (e.target === importModal) closeModal(importModal, importBox); });
+
+        // Sliders realtime labels updates
+        document.getElementById('radiusRange').addEventListener('input', (e) => {
+            document.getElementById('radiusValueDisplay').innerText = `${e.target.value}px`;
+        });
+        document.getElementById('opacityRange').addEventListener('input', (e) => {
+            document.getElementById('opacityValueDisplay').innerText = `${e.target.value}%`;
+        });
+        document.getElementById('timeoutRange').addEventListener('input', (e) => {
+            document.getElementById('timeoutValueDisplay').innerText = `${e.target.value}ms`;
+        });
+        document.getElementById('blurRange').addEventListener('input', (e) => {
+            document.getElementById('blurValueDisplay').innerText = `${e.target.value}px`;
+        });
+        document.getElementById('fontSizeRange').addEventListener('input', (e) => {
+            document.getElementById('fontSizeValueDisplay').innerText = `${e.target.value}px`;
+        });
+
+        document.querySelectorAll('.color-swatch-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                customAccentColor = btn.getAttribute('data-color');
+                customAccentHover = btn.getAttribute('data-hover');
+                document.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.remove('ring-4', 'ring-white'));
+                btn.classList.add('ring-4', 'ring-slate-300');
+            });
+        });
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+            appLanguage = document.getElementById('langSelect').value;
+            uiThemeMode = document.getElementById('themeStyleSelect').value;
+            scanConcurrency = parseInt(document.getElementById('concurrencySlider').value) || 24;
+            testTargetDomain = document.getElementById('targetDomainInput').value.trim() || 'wikipedia.org';
+            customBorderRadius = document.getElementById('radiusRange').value;
+            customGlassOpacity = document.getElementById('opacityRange').value;
+            uiShadowStyle = document.getElementById('shadowSelect').value;
+            uiTransitionSpeed = document.getElementById('speedSelect').value;
+
+            // Load extra adjustments
+            packetTimeout = parseInt(document.getElementById('timeoutRange').value);
+            dohMethod = document.getElementById('dohMethodSelect').value;
+            blurStrength = parseInt(document.getElementById('blurRange').value);
+            outputFontSize = parseInt(document.getElementById('fontSizeRange').value);
+            tableFontSize = parseInt(document.getElementById('tableFontSizeRange').value);
+            isAudioAlertEnabled = document.getElementById('audioAlertToggle').checked;
+
+            localStorage.setItem('concurrency', scanConcurrency);
+            localStorage.setItem('targetDomain', testTargetDomain);
+            localStorage.setItem('customAccentColor', customAccentColor);
+            localStorage.setItem('customAccentHover', customAccentHover);
+            localStorage.setItem('customBorderRadius', customBorderRadius);
+            localStorage.setItem('customGlassOpacity', customGlassOpacity);
+            localStorage.setItem('uiShadowStyle', uiShadowStyle);
+            localStorage.setItem('uiTransitionSpeed', uiTransitionSpeed);
+            
+            localStorage.setItem('packetTimeout', packetTimeout);
+            localStorage.setItem('dohMethod', dohMethod);
+            localStorage.setItem('blurStrength', blurStrength);
+            localStorage.setItem('outputFontSize', outputFontSize);
+            localStorage.setItem('tableFontSize', tableFontSize);
+            localStorage.setItem('isAudioAlertEnabled', isAudioAlertEnabled);
+
+            localStorage.setItem('showProto', document.getElementById('col_proto').checked);
+            localStorage.setItem('showJitter', document.getElementById('col_jitter').checked);
+            localStorage.setItem('showResolved', document.getElementById('col_resolved').checked);
+            localStorage.setItem('showLoss', document.getElementById('col_loss').checked);
+
+            applyLanguage(appLanguage);
+            applyThemePreset(uiThemeMode);
+            applyCustomStyles();
+            updateColumnVisibilityStyles();
+            closeModal(settingsModal, settingsBox);
+            showToast(appLanguage === 'fa' ? 'تغییرات با موفقیت اعمال و ذخیره شدند.' : 'Settings saved successfully.', 'success');
+        });
+
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            const nextTheme = (uiThemeMode === 'dark' || uiThemeMode === 'oled' || uiThemeMode === 'cyber' || uiThemeMode === 'neon' || uiThemeMode === 'forest') ? 'light' : 'dark';
+            applyThemePreset(nextTheme);
+        });
+
+        // Bulk Custom Import Processing
+        document.getElementById('applyImportBtn').addEventListener('click', () => {
+            const rawText = document.getElementById('bulkImportTextarea').value.trim();
+            const targetList = document.getElementById('importTargetSelect').value;
+            if (!rawText) return;
+
+            const lines = rawText.split('\n');
+            let parsedServers = [];
+
+            lines.forEach(line => {
+                const parts = line.split(',');
+                let name = "", url = "";
+                if (parts.length >= 2) {
+                    name = parts[0].trim();
+                    url = parts[1].trim();
+                } else if(parts.length === 1) {
+                    url = parts[0].trim();
+                    name = url;
+                }
+                if (url) {
+                    parsedServers.push(`${name},${url}`);
+                }
+            });
+
+            if (parsedServers.length > 0) {
+                const targetTextarea = targetList === 'remote' ? document.getElementById('remoteDnsInput') : document.getElementById('domesticDnsInput');
+                const existingVal = targetTextarea.value.trim();
+                targetTextarea.value = existingVal ? existingVal + '\n' + parsedServers.join('\n') : parsedServers.join('\n');
+                updateInputCounters();
+                document.getElementById('bulkImportTextarea').value = "";
+                closeModal(importModal, importBox);
+                showToast(appLanguage === 'fa' ? 'سرویس‌های ورودی با موفقیت درج شدند.' : 'DNS entries successfully imported.', 'success');
+            }
+        });
+
+        /* =========================================================
+           VERSION 0.0.12 - ROBUST DIAGNOSTICS & THREAD CANCELLATION
+           ========================================================= */
+
+        // Robust Pre-flight Network check bypass (Uses GET instead of HEAD)
+        async function checkNetworkPreflight() {
+            if (navigator.onLine === false) {
+                return { domesticOk: false, internationalOk: false };
+            }
+
+            const domesticUrls = [
+                'https://www.aparat.com/robots.txt',
+                'https://www.digikala.com/robots.txt'
+            ];
+            const internationalUrls = [
+                'https://www.wikipedia.org/robots.txt',
+                'https://www.google.com/generate_204'
+            ];
+
+            async function ping(url) {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), 2000);
+                try {
+                    await fetch(url, { method: 'GET', mode: 'no-cors', cache: 'no-store', signal: controller.signal });
+                    clearTimeout(id);
+                    return true;
+                } catch (err) {
+                    clearTimeout(id);
+                    return false;
+                }
+            }
+
+            const domesticPromises = domesticUrls.map(url => ping(url));
+            const internationalPromises = internationalUrls.map(url => ping(url));
+
+            const domesticResults = await Promise.all(domesticPromises);
+            const internationalResults = await Promise.all(internationalPromises);
+
+            const domesticOk = domesticResults.some(r => r === true);
+            const internationalOk = internationalResults.some(r => r === true);
+
+            return { domesticOk, internationalOk };
+        }
+
+        function cleanHost(url) {
+            let clean = url.trim();
+            clean = clean.replace(/^(https:\/\/|http:\/\/|tls:\/\/|quic:\/\/|tcp:\/\/|udp:\/\/)/i, '');
+            clean = clean.split('/')[0];
+            return clean;
+        }
+
+        function base64url(buf) {
+            return btoa(String.fromCharCode(...buf))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+        }
+
+        function buildDnsMessage(domain) {
+            const transactionId = [0xde, 0xad];
+            const flags = [0x01, 0x00];
+            const questions = [0x00, 0x01];
+            const answers = [0x00, 0x00];
+            const authorityRRs = [0x00, 0x00];
+            const additionalRRs = [0x00, 0x00];
+
+            let header = [...transactionId, ...flags, ...questions, ...answers, ...authorityRRs, ...additionalRRs];
+            
+            const domainParts = domain.split('.');
+            let questionBody = [];
+            domainParts.forEach(part => {
+                questionBody.push(part.length);
+                for (let i = 0; i < part.length; i++) {
+                    questionBody.push(part.charCodeAt(i));
+                }
+            });
+            questionBody.push(0x00);
+
+            return new Uint8Array([...header, ...questionBody, 0x00, 0x01, 0x00, 0x01]);
+        }
+
+        function parseDnsResponse(arrayBuffer) {
+            try {
+                const view = new DataView(arrayBuffer);
+                if (view.byteLength < 12) return null;
+                const ancount = view.getUint16(6); 
+                if (ancount === 0) return "No Rec";
+                
+                let offset = 12;
+                const qdcount = view.getUint16(4);
+                for (let i = 0; i < qdcount; i++) {
+                    while (offset < view.byteLength) {
+                        const len = view.getUint8(offset);
+                        offset++;
+                        if (len === 0) break;
+                        offset += len;
+                    }
+                    offset += 4; 
+                }
+                
+                let resolvedIps = [];
+                for (let i = 0; i < ancount && offset < view.byteLength; i++) {
+                    if ((view.getUint8(offset) & 0xC0) === 0xC0) {
+                        offset += 2;
+                    } else {
+                        while (offset < view.byteLength) {
+                            const len = view.getUint8(offset);
+                            offset++;
+                            if (len === 0) break;
+                            offset += len;
+                        }
+                    }
+                    if (offset + 10 > view.byteLength) break;
+                    const type = view.getUint16(offset);
+                    const rdlen = view.getUint16(offset + 8);
+                    offset += 10;
+                    
+                    if (type === 1 && rdlen === 4) { 
+                        if (offset + 4 <= view.byteLength) {
+                            const ip = `${view.getUint8(offset)}.${view.getUint8(offset+1)}.${view.getUint8(offset+2)}.${view.getUint8(offset+3)}`;
+                            resolvedIps.push(ip);
+                        }
+                    }
+                    offset += rdlen;
+                }
+                return resolvedIps.length > 0 ? resolvedIps[0] : "Verified";
+            } catch (e) {
+                return "Active";
+            }
+        }
+
+        async function verifySinglePacket(server) {
+            const abortCtrl = new AbortController();
+            const timeoutSignal = setTimeout(() => abortCtrl.abort(), packetTimeout);
+            const startTime = performance.now();
+
+            try {
+                if (server.type === 'https') {
+                    const dnsPayload = buildDnsMessage(testTargetDomain);
+                    let response;
+                    
+                    if (dohMethod === 'post') {
+                        response = await fetch(server.url, {
+                            method: 'POST',
+                            headers: { 'Accept': 'application/dns-message', 'Content-Type': 'application/dns-message' },
+                            body: dnsPayload,
+                            signal: abortCtrl.signal
+                        });
+                    } else if (dohMethod === 'get') {
+                        const b64 = base64url(dnsPayload);
+                        const getUrl = `${server.url}?dns=${b64}`;
+                        response = await fetch(getUrl, {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/dns-message' },
+                            signal: abortCtrl.signal
+                        });
+                    } else {
+                        try {
+                            response = await fetch(server.url, {
+                                method: 'POST',
+                                headers: { 'Accept': 'application/dns-message', 'Content-Type': 'application/dns-message' },
+                                body: dnsPayload,
+                                signal: abortCtrl.signal
+                            });
+                        } catch (postErr) {
+                            const b64 = base64url(dnsPayload);
+                            const getUrl = `${server.url}?dns=${b64}`;
+                            response = await fetch(getUrl, {
+                                method: 'GET',
+                                headers: { 'Accept': 'application/dns-message' },
+                                signal: abortCtrl.signal
+                            });
+                        }
+                    }
+
+                    if (!response.ok) throw new Error();
+                    const buf = await response.arrayBuffer();
+                    clearTimeout(timeoutSignal);
+                    const parsedIp = parseDnsResponse(buf);
+                    server.resolvedIp = parsedIp;
+                    return buf.byteLength >= 12 ? Math.round(performance.now() - startTime) : Infinity;
+                } else {
+                    const host = cleanHost(server.url);
+                    await fetch(`https://${host}`, { method: 'HEAD', mode: 'no-cors', signal: abortCtrl.signal });
+                    clearTimeout(timeoutSignal);
+                    server.resolvedIp = "OK";
+                    return Math.round(performance.now() - startTime);
+                }
+            } catch {
+                clearTimeout(timeoutSignal);
+                const duration = performance.now() - startTime;
+                if (duration < 1500 && server.type !== 'https') {
+                    server.resolvedIp = "OK (No-CORS)";
+                    return Math.round(duration);
+                }
+                server.resolvedIp = null;
+                return Infinity;
+            }
+        }
+
+        async function verifyDnsWithStability(server) {
+            let packetsReceived = 0;
+            let totalLatency = 0;
+            let latencies = [];
+
+            for (let i = 0; i < 3; i++) {
+                if (isScanCancelled) return Infinity;
+                const res = await verifySinglePacket(server);
+                if (res !== Infinity) {
+                    packetsReceived++;
+                    totalLatency += res;
+                    latencies.push(res);
+                }
+                await new Promise(r => setTimeout(r, 40));
+            }
+
+            if (packetsReceived > 0) {
+                server.lossRate = Math.round(((3 - packetsReceived) / 3) * 100);
+                
+                // Jitter average deviation calculation
+                const avg = totalLatency / packetsReceived;
+                let jitter = 0;
+                if (packetsReceived > 1) {
+                    const sumDeviation = latencies.reduce((acc, val) => acc + Math.abs(val - avg), 0);
+                    jitter = Math.round(sumDeviation / packetsReceived);
+                }
+                server.jitter = jitter;
+
+                return Math.round(avg);
+            } else {
+                server.lossRate = 100;
+                server.jitter = 0;
+                return Infinity;
+            }
+        }
+
+        async function runMassiveScaleEngine(servers, initialLimit, onProgressUpdate) {
+            let activeWorkers = 0;
+            let index = 0;
+            let currentLimit = initialLimit;
+            const finalizedResults = [];
+
+            return new Promise((resolve) => {
+                async function spawnWorker() {
+                    if (isScanCancelled) {
+                        resolve(finalizedResults);
+                        return;
+                    }
+
+                    if (index >= servers.length && activeWorkers === 0) {
+                        resolve(finalizedResults);
+                        return;
+                    }
+
+                    while (activeWorkers < currentLimit && index < servers.length) {
+                        if (isScanCancelled) {
+                            resolve(finalizedResults);
+                            return;
+                        }
+
+                        if (isScanPaused) {
+                            await new Promise(r => setTimeout(r, 200));
+                            continue; 
+                        }
+
+                        const targetId = index++;
+                        const server = servers[targetId];
+                        activeWorkers++;
+
+                        writeToLog(`[BURST] Evaluating ${server.name} via path: ${server.url}`);
+
+                        const averageRtt = await verifyDnsWithStability(server);
+
+                        if (averageRtt === Infinity) {
+                            writeToLog(`[DEAD] ${server.name} dropped all stability packets.`);
+                        } else {
+                            writeToLog(`[ALIVE] ${server.name} RTT: ${averageRtt}ms | Jitter: ±${server.jitter}ms | Loss: ${server.lossRate}%`);
+                        }
+
+                        server.latency = averageRtt;
+                        server.status = averageRtt === Infinity ? 'failed' : 'success';
+
+                        finalizedResults.push(server);
+                        activeWorkers--;
+
+                        if (!isScanCancelled) {
+                            finalizedResults.sort((a, b) => a.latency - b.latency);
+                            onProgressUpdate(finalizedResults, finalizedResults.length);
+                            spawnWorker();
+                        }
+                    }
+                }
+                spawnWorker();
+            });
+        }
+
+        function writeToLog(msg) {
+            const timestamp = new Date().toLocaleTimeString();
+            scanLogs.push(`[${timestamp}] ${msg}`);
+        }
+
+        function updateDynamicWidgets(results) {
+            const total = results.length;
+            const passed = results.filter(s => s.latency !== Infinity).length;
+            
+            const activeNodes = results.filter(s => s.latency !== Infinity);
+            const sumLatency = activeNodes.reduce((acc, curr) => acc + curr.latency, 0);
+            const avg = activeNodes.length > 0 ? Math.round(sumLatency / activeNodes.length) : 0;
+            
+            const fastest = activeNodes.length > 0 ? activeNodes[0] : null;
+
+            document.getElementById('statTotalNodes').innerText = total;
+            document.getElementById('statActiveNodes').innerText = passed;
+            document.getElementById('statAvgLatency').innerText = `${avg} ms`;
+            document.getElementById('statBestNode').innerText = fastest ? `${fastest.name} (${fastest.type.toUpperCase()})` : "-";
+        }
+
+        function renderTable(results) {
+            const tbody = document.getElementById('resultsTableBody');
+            tbody.innerHTML = '';
+
+            const query = document.getElementById('liveTableFilter').value.toLowerCase().trim();
+            const sorting = document.getElementById('tableSortSelect').value;
+
+            let filteredResults = results.filter(server => {
+                return server.name.toLowerCase().includes(query) || 
+                       server.url.toLowerCase().includes(query) || 
+                       server.type.toLowerCase().includes(query);
+            });
+
+            if (sorting === 'latency_asc') {
+                filteredResults.sort((a, b) => a.latency - b.latency);
+            } else if (sorting === 'latency_desc') {
+                filteredResults.sort((a, b) => b.latency - a.latency);
+            } else if (sorting === 'loss_asc') {
+                filteredResults.sort((a, b) => a.lossRate - b.lossRate);
+            } else if (sorting === 'name_asc') {
+                filteredResults.sort((a, b) => a.name.localeCompare(b.name));
+            }
+
+            if (filteredResults.length === 0 && query !== "") {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center p-6 text-slate-400">عبارتی مطابق با فیلتر "${query}" یافت نشد.</td></tr>`;
+                return;
+            }
+
+            filteredResults.forEach((server) => {
+                const isFailed = server.latency === Infinity;
+                const dnsResolutionText = (showResolved && server.resolvedIp) ? ` <br><span class="text-[9px] text-pink-500 font-bold col-resolved">${server.resolvedIp}</span>` : '';
+                
+                // Construct latency metric dynamically according to option flags
+                let latencyText = '';
+                if (isFailed) {
+                    latencyText = appLanguage === 'fa' ? 'پکت‌لاس / بی‌پاسخ' : 'Timed out';
+                } else {
+                    latencyText = `${server.latency} ms`;
+                    if (showJitter) latencyText += ` (±${server.jitter}ms Jitter)`;
+                    if (showLoss) latencyText += ` (${server.lossRate}% Loss)`;
+                }
+                
+                let latClass = 'text-red-500';
+                if (!isFailed) {
+                    if (server.latency < 120 && server.lossRate === 0) latClass = 'text-emerald-500 font-bold';
+                    else if (server.latency < 240) latClass = 'text-cyan-500';
+                    else latClass = 'text-amber-500';
+                }
+
+                const statusText = translations[appLanguage][`status_${server.status}`] || server.status;
+                const roleBadge = server.role === 'remote'
+                    ? '<span class="bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Remote</span>'
+                    : '<span class="bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 text-[9px] font-bold px-1.5 py-0.5 rounded-full">Domestic</span>';
+
+                const protoBadge = `<span class="bg-slate-500/10 text-slate-500 border border-slate-500/20 text-[9px] px-1.5 py-0.5 rounded font-mono uppercase">${server.type}</span>`;
+
+                const row = `
+                    <tr class="border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-900/30 transition">
+                        <td class="p-2 md:p-3 max-w-[140px] sm:max-w-xs">
+                            <div class="font-bold text-slate-700 dark:text-slate-200 text-[11px] md:text-xs truncate">${server.name}</div>
+                            <div class="font-mono text-[9px] text-slate-400 dark:text-slate-500 truncate select-all" title="${server.url}">${server.url}</div>
+                        </td>
+                        <td class="p-2 md:p-3 text-center col-proto">
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-1">
+                                ${protoBadge}
+                                ${roleBadge}
+                            </div>
+                        </td>
+                        <td class="p-2 md:p-3 text-center ${latClass} font-mono text-[10px] md:text-xs">${latencyText} ${dnsResolutionText}</td>
+                        <td class="p-2 md:p-3 text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button onclick="copySingleDns('${server.url}', this)" class="bg-slate-200 dark:bg-slate-800 hover:bg-purple-500/20 p-1.5 rounded transition text-slate-600 dark:text-slate-400 hover:text-purple-400 active:scale-95" title="کپی آدرس">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                </button>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${isFailed ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}">${statusText}</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Start, Pause & Reset Trigger Handlers
+        const startBtn = document.getElementById('startScanBtn');
+        const pauseBtn = document.getElementById('pauseScanBtn');
+
+        startBtn.addEventListener('click', async () => {
+            if (isCurrentlyScanning) return;
+
+            document.getElementById('scanStatus').innerText = "در حال تحلیل و ارزیابی شبکه...";
+            const connection = await checkNetworkPreflight();
+            
+            if (!connection.domesticOk && !connection.internationalOk) {
+                document.getElementById('scanStatus').innerText = translations[appLanguage]['status_ready'];
+                showToast(appLanguage === 'fa' ? 'وضعیت اتصال به شبکه‌های تست نامشخص است!' : 'Network connection seems unstable!', 'warning');
+                
+                const forceStart = confirm(appLanguage === 'fa'
+                    ? 'خطا: سیستم موفق به تایید ارتباط زنده با اینترنت تست (ملی و بین‌المللی) نشد.\n\nآیا مایلید با نادیده گرفتن این هشدار، اسکن را آغاز کنید؟'
+                    : 'Warning: Failed to confirm connection to test networks.\n\nDo you want to force start the scan anyway?');
+                if (!forceStart) {
+                    return;
+                }
+            }
+
+            // Read protocol selections
+            const isUdpSelected = document.getElementById('proto_udp').checked;
+            const isTcpSelected = document.getElementById('proto_tcp').checked;
+            const isTlsSelected = document.getElementById('proto_tls').checked;
+            const isQuicSelected = document.getElementById('proto_quic').checked;
+            const isHttpsSelected = document.getElementById('proto_https').checked;
+
+            if (!isUdpSelected && !isTcpSelected && !isTlsSelected && !isQuicSelected && !isHttpsSelected) {
+                document.getElementById('scanStatus').innerText = translations[appLanguage]['status_ready'];
+                showToast(appLanguage === 'fa' ? 'خطا: باید حداقل یک پروتکل را انتخاب کنید!' : 'Error: Select at least one protocol!', 'error');
+                return;
+            }
+
+            isCurrentlyScanning = true;
+            isScanPaused = false;
+            isScanCancelled = false; // Reset cancellation token
+            scanLogs = [];
+            scanStartTime = performance.now();
+            
+            pauseBtn.innerText = appLanguage === 'fa' ? '⏸️ توقف' : '⏸️ Pause';
+            pauseBtn.classList.remove('hidden');
+            pauseBtn.classList.add('bg-amber-500');
+            pauseBtn.classList.remove('bg-emerald-500');
+
+            document.getElementById('downloadLogBtn').classList.add('hidden');
+            updateStateBadge('scanning');
+
+            writeToLog("==================================================");
+            writeToLog("V2rayNG DNS Scanner - BENCHMARK REPORT v0.0.12");
+            writeToLog(`Target Domain Sample: ${testTargetDomain}`);
+            writeToLog("==================================================");
+
+            const rLines = document.getElementById('remoteDnsInput').value.split('\n').filter(l => l.trim() !== '');
+            const dLines = document.getElementById('domesticDnsInput').value.split('\n').filter(l => l.trim() !== '');
+
+            let baseQueue = [];
+
+            const parseAndEnqueue = (line, role) => {
+                const parts = line.split(',');
+                let name = "", url = "";
+                if (parts.length >= 2) {
+                    name = parts[0].trim();
+                    url = parts[1].trim();
+                } else if(parts.length === 1) {
+                    url = parts[0].trim();
+                    name = url;
+                }
+                if(url) baseQueue.push({ name, url, role });
+            };
+
+            rLines.forEach(l => parseAndEnqueue(l, 'remote'));
+            dLines.forEach(l => parseAndEnqueue(l, 'domestic'));
+
+            const userLimit = parseInt(activeScanSlider.value);
+            const truncatedBaseQueue = baseQueue.slice(0, userLimit);
+
+            let matrixQueue = [];
+            truncatedBaseQueue.forEach(server => {
+                const host = cleanHost(server.url);
+                if(server.role === 'remote') {
+                    if (isUdpSelected) matrixQueue.push({ name: `${server.name}`, url: `${host}`, type: 'udp', role: server.role });
+                    if (isTcpSelected) matrixQueue.push({ name: `${server.name}`, url: `tcp://${host}`, type: 'tcp', role: server.role });
+                    if (isTlsSelected) matrixQueue.push({ name: `${server.name}`, url: `tls://${host}`, type: 'tls', role: server.role });
+                    if (isQuicSelected) matrixQueue.push({ name: `${server.name}`, url: `quic://${host}`, type: 'quic', role: server.role });
+                    if (isHttpsSelected) matrixQueue.push({ name: `${server.name}`, url: `https://${host}/dns-query`, type: 'https', role: server.role });
+                } else {
+                    if (isUdpSelected) matrixQueue.push({ name: `${server.name}`, url: `${host}`, type: 'udp', role: server.role });
+                    if (isTcpSelected) matrixQueue.push({ name: `${server.name}`, url: `tcp://${host}`, type: 'tcp', role: server.role });
+                }
+            });
+
+            globalScanResults = [];
+            document.getElementById('resultsTableBody').innerHTML = '';
+            document.getElementById('scanStatus').innerText = translations[appLanguage]['status_scanning'];
+            
+            const totalCount = matrixQueue.length;
+
+            await runMassiveScaleEngine(matrixQueue, scanConcurrency, (currentResults, processedCount) => {
+                const progressPercentage = (processedCount / totalCount) * 100;
+                document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+                globalScanResults = currentResults;
+                renderTable(globalScanResults);
+                updateDynamicWidgets(globalScanResults);
+
+                // Live dynamic config updates
+                updateConfigOutputDisplay();
+
+                // Dynamic ETR & processing speed calculation
+                const elapsedTime = (performance.now() - scanStartTime) / 1000;
+                const speed = elapsedTime > 0 ? (processedCount / elapsedTime).toFixed(1) : 0;
+                const remaining = totalCount - processedCount;
+                const etr = speed > 0 ? Math.round(remaining / speed) : '-';
+
+                document.getElementById('speedDisplay').innerText = appLanguage === 'fa' ? `سرعت: ${speed} گره/ثانیه` : `Speed: ${speed} nodes/sec`;
+                document.getElementById('etrDisplay').innerText = appLanguage === 'fa' ? `زمان باقی‌مانده: ${etr} ثانیه` : `ETR: ${etr} sec`;
+                document.getElementById('progressCountDisplay').innerText = `${processedCount} / ${totalCount} گره`;
+                document.getElementById('progressPercentDisplay').innerText = `${Math.round(progressPercentage)}%`;
+            });
+
+            if (!isScanCancelled) {
+                document.getElementById('scanStatus').innerText = translations[appLanguage]['status_completed'];
+                document.getElementById('downloadLogBtn').classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                updateStateBadge('completed');
+                updateConfigOutputDisplay();
+                playCompletionChime();
+            }
+            isCurrentlyScanning = false;
+        });
+
+        // Safe Non-destructive Pause with Config box updates
+        pauseBtn.addEventListener('click', () => {
+            if (!isCurrentlyScanning) return;
+            isScanPaused = !isScanPaused;
+            if (isScanPaused) {
+                pauseBtn.innerText = appLanguage === 'fa' ? '▶️ ادامه' : '▶️ Resume';
+                pauseBtn.classList.replace('bg-amber-500', 'bg-emerald-500');
+                pauseBtn.classList.replace('hover:bg-amber-600', 'hover:bg-emerald-600');
+                document.getElementById('scanStatus').innerText = translations[appLanguage]['status_paused'];
+                
+                updateStateBadge('paused');
+                updateConfigOutputDisplay(); // Immediately populate what we have so far!
+
+                writeToLog("[PAUSE] Analysis temporarily paused by client request.");
+            } else {
+                pauseBtn.innerText = appLanguage === 'fa' ? '⏸️ توقف' : '⏸️ Pause';
+                pauseBtn.classList.replace('bg-emerald-500', 'bg-amber-500');
+                pauseBtn.classList.replace('hover:bg-emerald-600', 'hover:bg-amber-600');
+                document.getElementById('scanStatus').innerText = translations[appLanguage]['status_scanning'];
+                
+                updateStateBadge('scanning');
+
+                writeToLog("[RESUME] Analysis resumed.");
+            }
+        });
+
+        // Bug-free Results Reset Utility (Stops background threads and cleans up properly)
+        document.getElementById('clearResultsBtn').addEventListener('click', () => {
+            if (isCurrentlyScanning || isScanPaused) {
+                const confirmStop = confirm(appLanguage === 'fa' 
+                    ? 'اسکن در حال اجرا یا متوقف شده است. آیا مایلید اسکن جاری را کاملاً متوقف کرده و نتایج را پاکسازی کنید؟' 
+                    : 'Scan is currently running or paused. Do you want to cancel the scan and clear all results?');
+                if (!confirmStop) return;
+                
+                // Fire cancellation token to terminate loops safely
+                isScanCancelled = true;
+                isCurrentlyScanning = false;
+                isScanPaused = false;
+                pauseBtn.classList.add('hidden');
+            }
+            
+            globalScanResults = [];
+            document.getElementById('resultsTableBody').innerHTML = `
+                <tr class="text-slate-400 dark:text-slate-500">
+                    <td colspan="4" class="text-center p-6 text-xs md:text-sm" data-i18n="table_empty">${translations[appLanguage]['table_empty']}</td>
+                </tr>
+            `;
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('statTotalNodes').innerText = '0';
+            document.getElementById('statActiveNodes').innerText = '0';
+            document.getElementById('statAvgLatency').innerText = '0 ms';
+            document.getElementById('statBestNode').innerText = '-';
+            document.getElementById('etrDisplay').innerText = appLanguage === 'fa' ? 'زمان باقی‌مانده: -' : 'ETR: -';
+            document.getElementById('speedDisplay').innerText = appLanguage === 'fa' ? 'سرعت: -' : 'Speed: -';
+            document.getElementById('progressCountDisplay').innerText = '0 / 0 گره';
+            document.getElementById('progressPercentDisplay').innerText = '0%';
+            document.getElementById('jsonOutput').textContent = '// پس از اتمام اسکن، ساختار کانفیگ انتخابی در این بخش درج می‌شود...';
+            
+            updateStateBadge('ready');
+            showToast(appLanguage === 'fa' ? 'کل نتایج و حلقه‌های پردازش پاکسازی شدند.' : 'Results and threads cleared successfully.', 'success');
+        });
+
+        document.getElementById('downloadLogBtn').addEventListener('click', () => {
+            if (scanLogs.length === 0) return;
+
+            let report = "=== V2rayNG DNS Scanner REPORT v0.0.12 ===\n";
+            report += `Target Domain Tested: ${testTargetDomain}\n\n`;
+            
+            report += "--- FUNCTIONAL SECURITY NODES ---\n";
+            globalScanResults.filter(s => s.latency !== Infinity).forEach((s, i) => {
+                report += `${i+1}. [${s.name}] Format: ${s.url} | Latency: ${s.latency}ms (±${s.jitter}ms Jitter) | Packet Loss: ${s.lossRate}% | IP: ${s.resolvedIp || "N/A"}\n`;
+            });
+
+            report += "\n--- COMPLETE RECON LOGS ---\n";
+            report += scanLogs.join("\n");
+
+            const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
+            const filename = `dns_scanner_log_${Date.now()}.txt`;
+            
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+
+        function updateConfigOutputDisplay() {
+            if (globalScanResults.length === 0) return;
+
+            const activeRemotes = globalScanResults.filter(s => s.role === 'remote' && s.latency !== Infinity);
+            const activeDomestics = globalScanResults.filter(s => s.role === 'domestic' && s.latency !== Infinity);
+
+            const remotes = activeRemotes.length > 0 ? activeRemotes : globalScanResults.filter(s => s.role === 'remote');
+            const domestics = activeDomestics.length > 0 ? activeDomestics : globalScanResults.filter(s => s.role === 'domestic');
+
+            let outputContent = "";
+
+            if (exportFormatTab === 'xray') {
+                const xrayConfiguration = {
+                    "servers": [
+                        ...remotes.map(s => {
+                            if (s.type === 'https') {
+                                return { "address": s.url, "port": 443, "domains": ["geosite:geolocation-!cn", "geosite:google", "geosite:github"] };
+                            } else if (s.type === 'tls') {
+                                return { "address": s.url, "port": 853, "domains": ["geosite:geolocation-!cn"] };
+                            } else {
+                                return { "address": s.url, "port": 53, "domains": ["geosite:geolocation-!cn"] };
+                            }
+                        }),
+                        ...domestics.map(s => ({
+                            "address": s.url,
+                            "port": 53,
+                            "domains": ["geosite:cn", "geosite:ir", "domain:.ir"]
+                        })),
+                        "1.1.1.1"
+                    ],
+                    "hosts": { "dns.google": "8.8.8.8", "cloudflare-dns.com": "1.1.1.1" },
+                    "clientIp": "1.1.1.1",
+                    "tag": "dns_custom_routing"
+                };
+                outputContent = JSON.stringify(xrayConfiguration, null, 2);
+            } else if (exportFormatTab === 'singbox') {
+                const singBoxConfig = {
+                    "dns": {
+                        "servers": [
+                            ...remotes.map((s, idx) => ({
+                                "tag": `dns_remote_${idx}`,
+                                "address": s.url,
+                                "address_resolver": "dns_local"
+                            })),
+                            ...domestics.map((s, idx) => ({
+                                "tag": `dns_local_${idx}`,
+                                "address": s.url,
+                                "detour": "direct"
+                            })),
+                            { "tag": "dns_local", "address": "1.1.1.1", "detour": "direct" }
+                        ],
+                        "rules": [
+                            { "geosite": ["cn", "private"], "server": "dns_local_0" },
+                            { "geosite": ["geolocation-!cn"], "server": "dns_remote_0" }
+                        ]
+                    }
+                };
+                outputContent = JSON.stringify(singBoxConfig, null, 2);
+            } else if (exportFormatTab === 'clash') {
+                let clashYaml = "dns:\n  enable: true\n  ipv6: false\n  enhanced-mode: fake-ip\n  nameserver:\n";
+                remotes.forEach(s => {
+                    clashYaml += `    - '${s.url}'\n`;
+                });
+                clashYaml += "  nameserver-policy:\n";
+                domestics.forEach(s => {
+                    clashYaml += `    '+.ir,geosite:cn': '${s.url}'\n`;
+                });
+                outputContent = clashYaml;
+            } else if (exportFormatTab === 'dnsmasq') {
+                let dnsmasqText = "# Dnsmasq Custom Rules generated by V2rayNG DNS Scanner v0.0.12\n";
+                domestics.forEach(s => {
+                    dnsmasqText += `server=/ir/${s.url.replace('tcp://', '').replace('tls://', '')}\n`;
+                });
+                remotes.slice(0, 3).forEach(s => {
+                    dnsmasqText += `server=/${testTargetDomain}/${s.url.replace('https://', '').split('/')[0]}\n`;
+                });
+                outputContent = dnsmasqText;
+            }
+
+            document.getElementById('jsonOutput').textContent = outputContent;
+        }
+
+        /* =========================================================
+           MOBILE-SAFE FALLBACK COPY INFRASTRUCTURE
+           ========================================================= */
+        function copyTextFallback(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0"; textArea.style.left = "0"; textArea.style.position = "fixed"; textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus(); textArea.select();
+            try { document.execCommand('copy'); } catch (err) {}
+            document.body.removeChild(textArea);
+        }
+
+        function copySingleDns(text, buttonElement) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => { triggerSingleCopySuccess(buttonElement); })
+                .catch(() => { copyTextFallback(text); triggerSingleCopySuccess(buttonElement); });
+            } else {
+                copyTextFallback(text);
+                triggerSingleCopySuccess(buttonElement);
+            }
+        }
+
+        function triggerSingleCopySuccess(btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 1200);
+            showToast(appLanguage === 'fa' ? 'آدرس با موفقیت کپی شد.' : 'Address copied to clipboard.', 'success');
+        }
+
+        document.getElementById('copyConfigBtn').addEventListener('click', () => {
+            const bufferText = document.getElementById('jsonOutput').textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(bufferText).then(() => { triggerCopySuccess(); })
+                .catch(() => { copyTextFallback(bufferText); triggerCopySuccess(); });
+            } else {
+                copyTextFallback(bufferText); triggerCopySuccess();
+            }
+        });
+
+        function triggerCopySuccess() {
+            const btn = document.getElementById('copyConfigBtn');
+            const prev = btn.innerText;
+            btn.innerText = translations[appLanguage]['btn_copied'];
+            setTimeout(() => { btn.innerText = prev; }, 1800);
+            showToast(appLanguage === 'fa' ? 'تنظیمات با موفقیت در کلیپ‌بورد ذخیره شدند.' : 'Configuration copied to clipboard.', 'success');
+        }
+
+        initializeApp();
+    </script>
+</body>
+</html>

